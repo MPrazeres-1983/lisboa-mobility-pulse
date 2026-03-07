@@ -1,0 +1,14 @@
+# Ignorar as pastas de dados (NUNCA subir dados reais/brutos para o GitHub)
+data/raw/
+data/processed/
+
+# Ignorar ficheiros virtuais do Python e caches
+__pycache__/
+*.pyc
+.env
+venv/
+env/
+
+# Ignorar ficheiros de sistema (Mac/Windows)
+.DS_Store
+Thumbs.db
