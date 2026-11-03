@@ -55,3 +55,16 @@ Para mitigar os *stockouts* sem escalar linearmente os custos com carrinhas de r
 
 ---
 *Projeto desenvolvido como demonstração de competências End-to-End em Data Analytics e Business Intelligence por Mário Prazeres.*
+
+## Reproduzir o pipeline (correção de qualidade de dados)
+
+O ficheiro bruto de 2023 **não está incluído no repositório**. Para reproduzir os gráficos é necessário obter uma cópia autorizada com o mesmo esquema de colunas e guardá-la em `data/raw/estacoes-gira-1-trimestre-2023.xlsx`. As imagens e o mapa publicados são resultados históricos; não constituem previsão atual nem evidência de que a análise pode ser refeita sem o dataset.
+
+```bash
+pip install -r requirements.txt
+python -m src.data_loader
+python -m src.visualizer
+python -m pytest -q tests/
+```
+
+O cálculo da taxa de ocupação passa a marcar como desconhecidas (`NaN`) as observações em que `num_docks <= 0`, há valores em falta ou o número de bicicletas é negativo/superior à capacidade. Não se convertem esses casos em 0% de ocupação. A geração de Parquet cria automaticamente a pasta de destino. Os mapas de *stockout* continuam a representar contagens observadas, **não taxas normalizadas por estação**; não utilizar o mapa para comparar risco de falha entre estações sem corrigir a frequência das amostras.
