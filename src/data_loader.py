@@ -42,7 +42,15 @@ def clean_gira_data(df):
     df['station_id'] = split_col[0]
     df['station_name'] = split_col[1]
     df['timestamp'] = pd.to_datetime(df['timestamp'], utc=True)
-    df['occupancy_rate'] = (df['num_bikes'] / df['num_docks']).fillna(0)
+    # As observações sem capacidade válida não devem contar como 0% de ocupação.
+    df['num_bikes'] = pd.to_numeric(df['num_bikes'], errors='coerce')
+    df['num_docks'] = pd.to_numeric(df['num_docks'], errors='coerce')
+    valid = (
+        (df['num_docks'] > 0)
+        & (df['num_bikes'] >= 0)
+        & (df['num_bikes'] <= df['num_docks'])
+    )
+    df['occupancy_rate'] = (df['num_bikes'] / df['num_docks'].where(valid)).where(valid)
     df = df.drop(columns=['station_name_raw'])
     
     # ---------------------------------------------------------
@@ -54,8 +62,8 @@ def clean_gira_data(df):
     coords = df['position'].str.extract(r'\[([-\d.]+),\s*([-\d.]+)\]')
     
     # Atribuir às novas colunas e converter texto para número (float)
-    df['lon'] = coords[0].astype(float)
-    df['lat'] = coords[1].astype(float)
+    df['lon'] = pd.to_numeric(coords[0], errors='coerce')
+    df['lat'] = pd.to_numeric(coords[1], errors='coerce')
     
     # Já não precisamos da coluna original 'position'
     df = df.drop(columns=['position'])
@@ -81,6 +89,7 @@ if __name__ == "__main__":
         processed_path = os.path.join(base_path, '..', 'data', 'processed', 'gira_clean.parquet')
         
         print(f"\n💾 A guardar dados limpos em formato Parquet...")
+        os.makedirs(os.path.dirname(processed_path), exist_ok=True)
         df_clean.to_parquet(processed_path, index=False)
         print(f"✅ Dados guardados com sucesso em: {processed_path}")
         
